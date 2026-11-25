@@ -85,6 +85,42 @@ tr.row-i{cursor:pointer}tr.row-i:hover{background:#FBF4F6}tr.sel td{background:v
 .dn .inp{text-align:right}
 h2{font-size:16px;margin:0}
 .sp{flex:1}
+
+@page{size:A4;margin:10mm}
+@media print{#app,#layer,.toast{display:none!important}}
+.rvp{width:190mm;margin:0 auto;background:#fff;color:#000;font-family:"Meiryo UI","Hiragino Sans","Yu Gothic",sans-serif;font-size:10.5pt;line-height:1.35;padding:2mm 4mm 0;box-sizing:border-box}
+.rvp .rvt{text-align:center;font-size:17pt;font-weight:700;letter-spacing:.35em;margin-top:2mm}
+.rvp .rvd{text-align:right;margin:2mm 0 0 auto;border-bottom:1px solid #000;width:62mm;font-size:10pt;min-height:5mm}
+.rvp .rvh{display:grid;grid-template-columns:1fr 1fr;gap:8mm;margin-top:5mm}
+.rvp .to .ln{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:1px solid #000;font-size:13pt;min-height:9mm;margin-bottom:2mm}
+.rvp .to .ln b{margin-left:5mm;white-space:nowrap}
+.rvp .from{font-size:9.5pt}.rvp .from .nm{font-size:13pt;font-weight:700;margin-bottom:1mm}
+.rvp .from .tf{margin-top:.5mm}.rvp .from .st{margin-top:2mm}
+.rvp .rvg{margin-top:5mm;font-size:8.5pt;line-height:1.45}
+.rvp .rvk{text-align:center;margin-top:4mm;font-size:10pt}
+.rvp .rvr{display:grid;grid-template-columns:30mm 5mm 1fr;align-items:baseline;margin-top:2.2mm}
+.rvp .rvr.sub{margin-top:.5mm}
+.rvp .rvr .l{font-weight:700;letter-spacing:.08em}.rvp .rvr .c{text-align:center}
+.rvp .fill{display:inline-block;min-width:34mm;border-bottom:1px solid #000;padding:0 2mm;text-align:center}
+.rvp .rvr.g .fill{min-width:115mm;text-align:left}.rvp .rvr.g .v{display:flex;justify-content:space-between;align-items:flex-end}
+.rvp .rvr .v small{font-size:8.5pt}
+.rvp .meal,.rvp .oth{border-bottom:1px solid #000;min-height:12mm;padding:.5mm 2mm;white-space:normal}
+.rvp .oth{min-height:10mm}
+.rvp .rvn{margin:1mm 0 0 35mm;font-size:8.5pt}
+.rvp .rvo{display:inline-block;padding:0 2mm;border:1px solid transparent;border-radius:999px;margin:0 .5mm}
+.rvp .rvo.on{border-color:#000}
+.rvp i{font-style:normal}
+.rvp .rvx{text-decoration:line-through double}.rvp .rvm{font-size:8.5pt}
+.rvp .rvf{display:inline-block;min-width:14mm;border-bottom:1px solid #000;text-align:center}
+.rvp .cc{font-size:9pt}
+.rvp .rvb{margin-top:7mm}.rvp .rvb .bt{font-size:9pt}
+.rvp .bx{border:2px solid #000;padding:2mm 4mm 3mm}.rvp .bs{font-size:10.5pt}
+.rvp .br{display:flex;align-items:flex-end;gap:2mm;margin-top:3.5mm}
+.rvp .br span{width:30mm;letter-spacing:.15em;white-space:nowrap}
+.rvp .br i{flex:1;border-bottom:1px solid #000;height:6mm}.rvp .br.tall i{height:12mm}
+.rvp .br em{font-style:normal;width:10mm;text-align:center}
+.rvp .br u{text-decoration:none;margin-left:26mm}
+.rvwrap{overflow:auto;background:#EEE9EA;border-radius:8px;padding:8px}
 </style>
 </head>
 <body>
@@ -93,6 +129,7 @@ h2{font-size:16px;margin:0}
 <script src="config.js"></script>
 <script src="core.js"></script>
 <script src="xlsx.js"></script>
+<script src="reserve.js"></script>
 <script src="masters.js"></script>
 <script src="api-demo.js"></script>
 <script src="api-gas.js"></script>

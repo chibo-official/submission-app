@@ -62,6 +62,7 @@ function render() {
   else if (v === 'mylist') $app.innerHTML = vMyList();
   else if (v === 'approvals') $app.innerHTML = vApprovals();
   else if (v === 'acc') $app.innerHTML = vAcc();
+  else if (v === 'reserve') $app.innerHTML = vReserve();
   fillPhotos($app); loadHistory();
 }
 
@@ -114,11 +115,39 @@ function vHome() {
     '<div class="lbl" style="font-weight:700;color:var(--ink)">随時・10日／20日の報告</div><div class="tiles">' +
     tile('void', '写真を撮って、事由を書きます', true) + tile('bill', 'お客様の宛先・金額・レシートの写真') + tile('late', '預け入れが翌営業日を過ぎたときに作成します') + tile('pos', '10日・20日の中間報告と月末の修正依頼') + '</div>' +
     '<div class="lbl" style="font-weight:700;color:var(--ink)">月末に作成（期限：翌月3日 9:00）</div><div class="tiles">' + tile('usage', 'ポイント・クーポン・売掛キーの、日ごとの利用額') + cashTile() + tile('petty', '小口現金の金種と預金残高') + tile('book', '現金の入出金を1行ずつ記録します') + '</div>' +
+    '<div class="lbl" style="font-weight:700;color:var(--ink)">お客様（旅行会社など）へ送る書類</div><div class="tiles">' +
+    '<button class="tile" data-act="reserve"><div class="n">③ ご予約内容確認票を作る</div><div class="d">入力して、PDFまたはExcelで出力します（経理部への提出はありません）</div></button></div>' +
     '<div class="tiles">' +
     '<button class="tile" data-act="approvals"><div class="n">承認する（店舗責任者）</div><div class="d">承認待ちの伝票を確認します</div>' + (pend ? '<span class="c">' + pend + '</span>' : '') + '</button>' +
     '<button class="tile" data-act="mylist" data-f="all"><div class="n">提出した伝票を見る</div><div class="d">下書き・差戻し・承認の状況</div></button>' +
     '</div></div>';
 }
+
+
+// ---------- ③ ご予約内容確認票（PDF／Excel出力） ----------
+function vReserve() {
+  const rv = S.rv, tot = Reserve.totalOf(rv), d = Reserve.storeDefaults(S.session.store);
+  const t = (k, lbl, o) => { o = o || {}; return '<div class="field"><div class="lbl">' + lbl + (o.req ? ' <span class="req">必須</span>' : '') + '</div><input data-rv="' + k + '" type="' + (o.type || 'text') + '"' + (o.mode ? ' inputmode="' + o.mode + '"' : '') + (o.list ? ' list="' + o.list + '"' : '') + ' value="' + esc(rv[k]) + '" placeholder="' + esc(o.ph || '') + '"></div>'; };
+  const ta = (k, lbl, ph) => '<div class="field"><div class="lbl">' + lbl + '</div><textarea data-rv="' + k + '" placeholder="' + esc(ph || '') + '">' + esc(rv[k]) + '</textarea></div>';
+  const chips = (k, list, lbl, fixed) => '<div class="field"><div class="lbl">' + lbl + (fixed ? '' : '（もう一度押すと選択を外せます）') + '</div><div class="chips">' + list.map((x) => { const v = Array.isArray(x) ? x[0] : x, tx = Array.isArray(x) ? x[1] : x; return '<button class="chip' + (rv[k] === v ? ' on' : '') + '" data-act="rvset" data-k="' + k + '" data-v="' + esc(v) + '">' + esc(tx) + '</button>'; }).join('') + '</div></div>';
+  return top('ご予約内容確認票', S.session.store.name + '（' + S.session.store.code + '）', 'rvback') + '<div class="wrap narrow stack">' +
+    '<div class="card" style="font-size:13px;color:var(--sub)">旅行会社などにFAXする「ご予約内容確認票」を作ります。入力したら「PDFで保存（印刷）」か「Excelで保存」を押してください。この内容は、経理部への提出とは関係なく、保存もされません（画面を閉じると消えます）。</div>' +
+    '<div class="card stack"><h2>宛先</h2>' + t('date', '作成日', { type: 'date' }) + t('toCompany', '宛先の会社名（御中）', { ph: '例：株式会社○○トラベル' }) + t('toPerson', '宛先のご担当者名（様）', { ph: '例：山田 太郎' }) + t('staff', '担当者（当店）', { list: 'rvstaff', ph: 'お名前を入力、または選択' }) +
+    '<datalist id="rvstaff">' + S.session.staff.map((x) => '<option value="' + esc(x.name) + '">').join('') + '</datalist></div>' +
+    '<div class="card stack"><h2>ご予約の内容</h2>' + t('group', '団体様名', { req: 1, ph: '例：○○県 ○○会' }) + t('useDate', 'ご利用日', { type: 'date', req: 1 }) + (Reserve.wday(rv.useDate) ? '<div style="font-size:13px;color:var(--sub);margin-top:-6px">' + esc(Reserve.useText(rv.useDate)) + '</div>' : '') +
+    chips('ampm', ['AM', 'PM'], 'AM・PM') + '<div class="grid2">' + t('start', '開始時刻', { type: 'time' }) + t('end', '終了時刻', { type: 'time' }) + '</div>' +
+    ta('meal', 'お食事内容（コース名 等）', '例：お好み焼コース（飲み放題付き）') +
+    '<div class="grid2">' + t('headcount', '人数（名様）', { type: 'number', mode: 'numeric' }) + t('breakdown', '内訳', { ph: '例：大人10名 子供2名' }) + '</div>' +
+    '<div class="grid2">' + t('unit', 'おひとり様の料金（円・税サ込）', { type: 'number', mode: 'numeric', ph: 'アラカルトなら空欄' }) + '<div class="field"><div class="lbl">合計（円）' + (tot && !rv.totalEdited ? ' ※自動計算' : '') + '</div><input data-rv="total" type="number" inputmode="numeric" value="' + (rv.totalEdited ? esc(rv.total) : (tot || '')) + '" placeholder="自動計算"></div></div>' +
+    '<div style="font-size:12px;color:var(--sub);margin-top:-6px">当日アラカルトでご注文の場合、料金は空欄で構いません。</div></div>' +
+    '<div class="card stack"><h2>お支払い</h2>' + chips('feeMode', [['rate', '手数料あり（旅行会社）'], ['none', '手数料なし（一般のお客様）']], '取扱手数料', true) +
+    (rv.feeMode === 'none' ? '' : t('fee', '取扱手数料（％・ご予約料理のみ）', { type: 'number', mode: 'decimal' }) + chips('feeWay', Reserve.WAYS, '手数料のお支払い方法')) +
+    chips('payFood', Reserve.FOOD, 'お料理のお支払方法') + chips('payDrink', Reserve.DRINK, 'お飲物のお支払方法') + ta('other', 'その他', 'ご連絡事項など') + '</div>' +
+    '<details class="card"' + (d.known ? '' : ' open') + '><summary style="cursor:pointer;font-weight:700">当店の情報（店舗名・住所・電話）' + (d.known ? '' : '　※この店舗は一覧にないため、入力してください') + '</summary><div class="stack" style="margin-top:10px">' +
+    t('storeName', '店舗名') + t('zip', '郵便番号', { ph: '例：542-0071' }) + t('address', '住所') + t('building', '建物名・階') + '<div class="grid2">' + t('tel', 'Tel.') + t('fax', 'Fax.') + '</div></div></details>' +
+    '</div><div class="bar"><button class="btn" data-act="rvpreview">プレビュー</button><button class="btn pri" data-act="rvpdf">PDFで保存（印刷）</button><button class="btn" data-act="rvxlsx">Excelで保存</button></div>';
+}
+function rvOk() { const e = Reserve.check(S.rv); if (e.length) { toast(e[0]); return false; } return true; }
 
 // ---------- 入力フォーム ----------
 const defaultReport = () => { const d = new Date(), day = d.getDate(), pm = Core.fmt(new Date(d.getFullYear(), d.getMonth() - 1, 15)).slice(0, 7), cm = Core.fmt(d).slice(0, 7); return day <= 3 ? { t: 'eom', m: pm } : day <= 10 ? { t: 'd10', m: cm } : day <= 20 ? { t: 'd20', m: cm } : { t: 'eom', m: cm }; };
@@ -573,6 +602,12 @@ document.addEventListener('click', async (e) => {
   const a = t.dataset.act, id = t.dataset.id;
   if (a === 'ovclose') { if (t.classList.contains('ov') && e.target !== t) return; closeModal(); return; }
   if (a === 'login') return doLogin();
+  if (a === 'reserve') { if (!S.rv || S.rvStore !== S.session.store.code) { S.rv = Reserve.blank(S.session.store, todayStr()); S.rvStore = S.session.store.code; } return go('reserve'); }
+  if (a === 'rvback') return go('home');
+  if (a === 'rvset') { const k = t.dataset.k, v = t.dataset.v; if (k === 'feeMode') S.rv.feeMode = v; else S.rv[k] = S.rv[k] === v ? '' : v; const y0 = window.scrollY; render(); return window.scrollTo(0, y0); }
+  if (a === 'rvpreview') { if (!rvOk()) return; const w = Math.min(window.innerWidth - 40, 720), z = w / 718; return modal('<div class="rvwrap" style="max-height:78vh"><div style="zoom:' + z.toFixed(3) + '">' + Reserve.html(S.rv) + '</div></div><button class="btn pri" data-act="ovclose">閉じる</button>'), $layer.querySelector('.box').style.maxWidth = (w + 40) + 'px'; }
+  if (a === 'rvpdf') { if (!rvOk()) return; document.getElementById('printArea').innerHTML = Reserve.html(S.rv); setTimeout(() => { window.print(); }, 300); return; }
+  if (a === 'rvxlsx') { if (!rvOk()) return; Xlsx.download(Reserve.fileName(S.rv) + '.xlsx', Xlsx.build(Reserve.sheets(S.rv))); return toast('Excelファイルを保存しました'); }
   if (a === 'loginmode') { S.loginMode = S.loginMode === 'acc' ? 'store' : 'acc'; S.msg = ''; return render(); }
   if (a === 'logout') { S.session = null; S.slips = []; S.sel = null; return go('login'); }
   if (a === 'home') { S.approvedFlash = ''; await refresh(); return go('home', { sel: null }); }
@@ -611,12 +646,14 @@ document.addEventListener('click', async (e) => {
 });
 document.addEventListener('input', (e) => {
   const d = e.target.dataset || {};
+  if (d.rv !== undefined && S.rv) { S.rv[d.rv] = e.target.value; if (d.rv === 'total') S.rv.totalEdited = e.target.value !== ''; return; }
   if (d.item !== undefined && S.form) { S.form.items[+d.item][d.key] = d.key === 'receiptAt' ? fromInput(e.target.value) : e.target.value; return; }
   if (d.path !== undefined && S.form) { let v = e.target.value; if (d.num) v = v === '' ? '' : Math.abs(Math.floor(Number(v)) || 0); setPath(S.form, d.path, v); liveOut(); return; }
   const b = d.bind; if (b && S.form) { S.form[b] = b === 'occurredAt' ? fromInput(e.target.value) : e.target.value; }
 });
 document.addEventListener('change', async (e) => {
   const el = e.target;
+  if (el.dataset.rv !== undefined && S.rv) { S.rv[el.dataset.rv] = el.value; if (['useDate', 'unit', 'headcount'].indexOf(el.dataset.rv) >= 0) { const y0 = window.scrollY; render(); window.scrollTo(0, y0); } return; }
   if (el.dataset.filter === 'matrixMonth') { S.matrixMonth = el.value; return render(); }
   if (el.dataset.filter) { S.filter[el.dataset.filter] = el.value; S.sel = null; return render(); }
   if (el.dataset.bind === 'targetMonth') { if (S.form.form === 'usage') return switchUsageMonth(); syncCarry(); return render(); }
