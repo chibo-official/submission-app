@@ -52,6 +52,11 @@ button,input,select,textarea{font:inherit;color:inherit}
 .tile.pri{background:var(--red);color:#fff;border-color:var(--red)}
 .tile.off{opacity:.55;cursor:default}
 .tile .n{font-size:17px;font-weight:700}.tile .d{font-size:12px;opacity:.85;margin-top:2px}
+.sec{display:flex;flex-direction:column;gap:8px}
+.sec .sh{display:flex;align-items:baseline;gap:10px;border-left:4px solid var(--red);padding-left:8px}
+.sec .sh h2{font-size:15px}.sec .sh span{font-size:12px;color:var(--sub)}
+.sec .tiles{grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.sec .tile{min-height:74px;padding:12px 14px}.sec .tile .n{font-size:15px;line-height:1.35}.sec .tile .d{font-size:12px;line-height:1.45;margin-top:4px}
 .tile .c{position:absolute;right:12px;top:12px;background:var(--red);color:#fff;border-radius:999px;min-width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-weight:700;padding:0 8px}
 .list{display:flex;flex-direction:column;gap:8px}
 .item{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer}

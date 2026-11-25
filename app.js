@@ -102,25 +102,22 @@ function deadlineBanner() {
 }
 function cashTile() {
   const ok = S.session.store.cashPlaces && S.session.store.cashPlaces.length;
-  return ok ? '<button class="tile" data-act="newform" data-form="cash" ' + (S.session.readOnly ? 'disabled' : '') + '><div class="n">⑦ 現金管理票を入力する</div><div class="d">金種・つり銭準備金・預入予定の売上金</div></button>' : '<div class="tile off"><div class="n">⑦ 現金管理票</div><div class="d">この店舗は対象外です</div></div>';
+  return ok ? '<button class="tile" data-act="newform" data-form="cash" ' + (S.session.readOnly ? 'disabled' : '') + '><div class="n">⑦ 現金管理票</div><div class="d">金種・つり銭準備金・預入予定の売上金</div></button>' : '<div class="tile off"><div class="n">⑦ 現金管理票</div><div class="d">この店舗は対象外です</div></div>';
 }
 function vHome() {
   const st = S.session.store, mine = S.slips, ro = S.session.readOnly ? 'disabled' : '';
   const pend = mine.filter((s) => s.status === 'pending').length, ret = mine.filter((s) => s.status === 'returned');
-  const tile = (f, d, pri) => '<button class="tile' + (pri ? ' pri' : '') + '" data-act="newform" data-form="' + f + '" ' + ro + '><div class="n">' + Core.FORMS[f].no + ' ' + Core.FORMS[f].name + 'を入力する</div><div class="d">' + d + '</div></button>';
+  const tile = (f, d, pri) => '<button class="tile' + (pri ? ' pri' : '') + '" data-act="newform" data-form="' + f + '" ' + ro + '><div class="n">' + Core.FORMS[f].no + ' ' + Core.FORMS[f].name + '</div><div class="d">' + d + '</div></button>';
+  const sec = (title, sub, body) => '<section class="sec"><div class="sh"><h2>' + title + '</h2>' + (sub ? '<span>' + sub + '</span>' : '') + '</div><div class="tiles">' + body + '</div></section>';
   return top(st.name + '（' + st.code + '）', '提出物管理') + '<div class="wrap stack">' + deadlineBanner() +
     (S.session.readOnly ? '<div class="alert">閉店した店舗のため、閲覧のみです。</div>' : '') +
     (ret.length ? '<div class="alert"><b>差戻しが' + ret.length + '件あります。</b>内容を直して、もう一度提出してください。<br><button class="btn sm" style="margin-top:8px" data-act="mylist" data-f="returned">差戻しを見る</button></div>' : '') +
-    '<div class="tiles">' +
-    '<div class="lbl" style="font-weight:700;color:var(--ink)">随時・10日／20日の報告</div><div class="tiles">' +
-    tile('void', '写真を撮って、事由を書きます', true) + tile('bill', 'お客様の宛先・金額・レシートの写真') + tile('late', '預け入れが翌営業日を過ぎたときに作成します') + tile('pos', '10日・20日の中間報告と月末の修正依頼') + '</div>' +
-    '<div class="lbl" style="font-weight:700;color:var(--ink)">月末に作成（期限：翌月3日 9:00）</div><div class="tiles">' + tile('usage', 'ポイント・クーポン・売掛キーの、日ごとの利用額') + cashTile() + tile('petty', '小口現金の金種と預金残高') + tile('book', '現金の入出金を1行ずつ記録します') + '</div>' +
-    '<div class="lbl" style="font-weight:700;color:var(--ink)">お客様（旅行会社など）へ送る書類</div><div class="tiles">' +
-    '<button class="tile" data-act="reserve"><div class="n">③ ご予約内容確認票を作る</div><div class="d">入力して、PDFまたはExcelで出力します（経理部への提出はありません）</div></button></div>' +
-    '<div class="tiles">' +
-    '<button class="tile" data-act="approvals"><div class="n">承認する（店舗責任者）</div><div class="d">承認待ちの伝票を確認します</div>' + (pend ? '<span class="c">' + pend + '</span>' : '') + '</button>' +
-    '<button class="tile" data-act="mylist" data-f="all"><div class="n">提出した伝票を見る</div><div class="d">下書き・差戻し・承認の状況</div></button>' +
-    '</div></div>';
+    sec('随時・10日／20日の報告', '', tile('void', '写真を撮って、事由を書きます', true) + tile('bill', 'お客様の宛先・金額・レシートの写真') + tile('pos', '10日・20日の中間報告と月末の修正依頼')) +
+    sec('月末に作成', '期限：翌月3日 9:00', tile('usage', 'ポイント・クーポン・売掛キーの日ごとの利用額（毎日保存できます）') + cashTile() + tile('petty', '小口現金の金種と預金残高') + tile('book', '現金の入出金を1行ずつ記録します')) +
+    sec('お客様（旅行会社など）へ送る書類', '経理部への提出はありません', '<button class="tile" data-act="reserve"><div class="n">③ ご予約内容確認票</div><div class="d">入力して、PDFまたはExcelで出力します。請求依頼票（④）へ引き継げます</div></button>') +
+    sec('承認・確認', '', '<button class="tile" data-act="approvals"><div class="n">承認する（店舗責任者）</div><div class="d">承認待ちの伝票を確認します</div>' + (pend ? '<span class="c">' + pend + '</span>' : '') + '</button>' +
+      '<button class="tile" data-act="mylist" data-f="all"><div class="n">提出した伝票を見る</div><div class="d">下書き・差戻し・承認の状況</div></button>') +
+    '</div>';
 }
 
 
@@ -134,18 +131,32 @@ function vReserve() {
     '<div class="card" style="font-size:13px;color:var(--sub)">旅行会社などにFAXする「ご予約内容確認票」を作ります。入力したら「PDFで保存（印刷）」か「Excelで保存」を押してください。この内容は、経理部への提出とは関係なく、保存もされません（画面を閉じると消えます）。</div>' +
     '<div class="card stack"><h2>宛先</h2>' + t('date', '作成日', { type: 'date' }) + t('toCompany', '宛先の会社名（御中）', { ph: '例：株式会社○○トラベル' }) + t('toPerson', '宛先のご担当者名（様）', { ph: '例：山田 太郎' }) + t('staff', '担当者（当店）', { list: 'rvstaff', ph: 'お名前を入力、または選択' }) +
     '<datalist id="rvstaff">' + S.session.staff.map((x) => '<option value="' + esc(x.name) + '">').join('') + '</datalist></div>' +
-    '<div class="card stack"><h2>ご予約の内容</h2>' + t('group', '団体様名', { req: 1, ph: '例：○○県 ○○会' }) + t('useDate', 'ご利用日', { type: 'date', req: 1 }) + (Reserve.wday(rv.useDate) ? '<div style="font-size:13px;color:var(--sub);margin-top:-6px">' + esc(Reserve.useText(rv.useDate)) + '</div>' : '') +
+    '<div class="card stack"><h2>ご予約の内容</h2>' + t('group', '団体様名', { req: 1, ph: '例：○○県 ○○会' }) + t('useDate', 'ご利用日', { type: 'date', req: 1 }) + '<div id="rvWd" style="font-size:13px;color:var(--sub);margin-top:-6px">' + esc(Reserve.wday(rv.useDate) ? Reserve.useText(rv.useDate) : '') + '</div>' +
     chips('ampm', ['AM', 'PM'], 'AM・PM') + '<div class="grid2">' + t('start', '開始時刻', { type: 'time' }) + t('end', '終了時刻', { type: 'time' }) + '</div>' +
     ta('meal', 'お食事内容（コース名 等）', '例：お好み焼コース（飲み放題付き）') +
     '<div class="grid2">' + t('headcount', '人数（名様）', { type: 'number', mode: 'numeric' }) + t('breakdown', '内訳', { ph: '例：大人10名 子供2名' }) + '</div>' +
-    '<div class="grid2">' + t('unit', 'おひとり様の料金（円・税サ込）', { type: 'number', mode: 'numeric', ph: 'アラカルトなら空欄' }) + '<div class="field"><div class="lbl">合計（円）' + (tot && !rv.totalEdited ? ' ※自動計算' : '') + '</div><input data-rv="total" type="number" inputmode="numeric" value="' + (rv.totalEdited ? esc(rv.total) : (tot || '')) + '" placeholder="自動計算"></div></div>' +
+    '<div class="grid2">' + t('unit', 'おひとり様の料金（円・税サ込）', { type: 'number', mode: 'numeric', ph: 'アラカルトなら空欄' }) + '<div class="field"><div class="lbl">合計（円） <span id="rvTotLbl">' + (tot && !rv.totalEdited ? '※自動計算' : '') + '</span></div><input data-rv="total" type="number" inputmode="numeric" value="' + (rv.totalEdited ? esc(rv.total) : (tot || '')) + '" placeholder="自動計算"></div></div>' +
     '<div style="font-size:12px;color:var(--sub);margin-top:-6px">当日アラカルトでご注文の場合、料金は空欄で構いません。</div></div>' +
     '<div class="card stack"><h2>お支払い</h2>' + chips('feeMode', [['rate', '手数料あり（旅行会社）'], ['none', '手数料なし（一般のお客様）']], '取扱手数料', true) +
     (rv.feeMode === 'none' ? '' : t('fee', '取扱手数料（％・ご予約料理のみ）', { type: 'number', mode: 'decimal' }) + chips('feeWay', Reserve.WAYS, '手数料のお支払い方法')) +
     chips('payFood', Reserve.FOOD, 'お料理のお支払方法') + chips('payDrink', Reserve.DRINK, 'お飲物のお支払方法') + ta('other', 'その他', 'ご連絡事項など') + '</div>' +
+    '<div class="card stack"><h2>請求書が必要なとき</h2><div style="font-size:13px;color:var(--sub)">宛先の会社名・ご担当者名・ご利用日・人数・合計金額を、請求依頼票（④）に引き継ぎます。住所・電話・レシートNo・写真は、④の画面で入力してください。</div><button class="btn" data-act="rvtobill">④ 請求依頼票へ引き継ぐ</button></div>' +
     '<details class="card"' + (d.known ? '' : ' open') + '><summary style="cursor:pointer;font-weight:700">当店の情報（店舗名・住所・電話）' + (d.known ? '' : '　※この店舗は一覧にないため、入力してください') + '</summary><div class="stack" style="margin-top:10px">' +
     t('storeName', '店舗名') + t('zip', '郵便番号', { ph: '例：542-0071' }) + t('address', '住所') + t('building', '建物名・階') + '<div class="grid2">' + t('tel', 'Tel.') + t('fax', 'Fax.') + '</div></div></details>' +
     '</div><div class="bar"><button class="btn" data-act="rvpreview">プレビュー</button><button class="btn pri" data-act="rvpdf">PDFで保存（印刷）</button><button class="btn" data-act="rvxlsx">Excelで保存</button></div>';
+}
+function rvLive() {
+  const rv = S.rv, tot = Reserve.totalOf(rv), el = document.querySelector('[data-rv=total]'), wd = document.getElementById('rvWd'), lb = document.getElementById('rvTotLbl');
+  if (el && !rv.totalEdited && document.activeElement !== el) el.value = tot || '';
+  if (lb) lb.textContent = tot && !rv.totalEdited ? '※自動計算' : '';
+  if (wd) wd.textContent = Reserve.wday(rv.useDate) ? Reserve.useText(rv.useDate) : '';
+}
+function fillBillFromRv(b) {
+  const rv = S.rv; if (!rv) return;
+  const set = (k, v) => { if (v !== '' && v != null) b[k] = v; };
+  set('company', rv.toCompany); set('addressee', rv.toPerson); set('usageDate', rv.useDate); set('headcount', rv.headcount);
+  const t = Reserve.totalOf(rv); if (t) b.amount = t;
+  b.note = [b.note, 'ご予約内容確認票より（団体様名：' + (rv.group || '') + '）'].filter(String).join(' ／ ');
 }
 function rvOk() { const e = Reserve.check(S.rv); if (e.length) { toast(e[0]); return false; } return true; }
 
@@ -340,6 +351,7 @@ function vFormBill() {
   return top('④ 請求依頼票', st.name + '（' + st.code + '）' + (dl ? ' ／ 期限 ' + dlShort(dl) : ''), 'home') + '<div class="wrap narrow stack">' +
     (f.returnReason ? '<div class="alert"><b>差戻しの理由：</b>' + esc(f.returnReason) + '</div>' : '') +
     '<div class="alert info">お客様から「請求書で支払いたい」と頼まれたときに作成します。経理部が、この内容で請求書を発行します。</div>' +
+    (!f.id && S.rv && (S.rv.group || S.rv.toCompany) ? '<div class="card" style="display:flex;gap:10px;align-items:center;justify-content:space-between"><div style="font-size:13px">ご予約内容確認票（' + esc(S.rv.group || S.rv.toCompany) + '）の内容を使えます</div><button class="btn sm" data-act="billfromrv">読み込む</button></div>' : '') +
     '<div class="field"><div class="lbl">入力者（担当名） <span class="req">必須</span></div><select data-bind="inputterId">' + staffOpts(f.inputterId) + '</select></div>' +
     '<div class="field"><div class="lbl">ご利用日 <span class="req">必須</span></div><input type="date" data-path="data.usageDate" value="' + esc(b.usageDate) + '"></div>' +
     '<div class="card stack" style="gap:8px"><b>請求先</b>' + fld('会社名', 'data.company', b.company, false, 'placeholder="個人の場合は空欄で可"') + fld('部署', 'data.dept', b.dept) + fld('役職', 'data.title', b.title) + fld('宛名（お名前）', 'data.addressee', b.addressee, false, 'placeholder="会社名か宛名のどちらかは必須"') +
@@ -579,7 +591,7 @@ function vAcc() {
   const act = exp + (sel && canEdit && sel.status === 'received' ? '<div class="row"><button class="btn" data-act="accreturn" data-id="' + esc(sel.id) + '">差戻す（理由を入力）</button><button class="btn ok" data-act="accconfirm" data-id="' + esc(sel.id) + '">確認済みにする</button></div>' : (sel && !canEdit ? '<div class="alert info">閲覧のみのIDです（確認・差戻しはできません。Excel・PDFの出力はできます）。</div>' : ''));
   return top('経理部 受付箱', ses.name + '（' + (canEdit ? '閲覧・編集' : '閲覧のみ') + '）', null) + '<div class="wrap stack">' + tabs +
     '<div class="sum"><div class="card"><div class="n" style="color:var(--blue)">' + cnt('received') + '</div><div class="l">受付（確認待ち）</div></div><div class="card"><div class="n" style="color:var(--warn)">' + cnt('pending') + '</div><div class="l">承認待ち（店舗）</div></div><div class="card"><div class="n" style="color:var(--red)">' + cnt('returned') + '</div><div class="l">差戻し中</div></div><div class="card"><div class="n" style="color:var(--ok)">' + cnt('confirmed') + '</div><div class="l">確認済み</div></div><div class="card"><div class="n" style="color:var(--red)">' + over + '</div><div class="l">期限超過</div></div></div>' +
-    '<div class="chips">' + [['all', '全様式'], ['usage', '① 日次利用'], ['void', '② 誤打伝票'], ['bill', '④ 請求依頼'], ['late', '⑤ 遅滞報告'], ['pos', '⑥ POS修正'], ['cash', '⑦ 現金管理票'], ['petty', '⑧ 小口現金'], ['book', '⑨ 出納帳']].map((c) => '<button class="chip' + (f.form === c[0] ? ' on' : '') + '" data-act="accform" data-v="' + c[0] + '">' + c[1] + '</button>').join('') + '</div>' +
+    '<div class="chips">' + [['all', '全様式'], ['usage', '① 日次利用'], ['void', '② 誤打伝票'], ['bill', '④ 請求依頼'], ['pos', '⑥ POS修正'], ['cash', '⑦ 現金管理票'], ['petty', '⑧ 小口現金'], ['book', '⑨ 出納帳']].map((c) => '<button class="chip' + (f.form === c[0] ? ' on' : '') + '" data-act="accform" data-v="' + c[0] + '">' + c[1] + '</button>').join('') + '</div>' +
     '<div class="chips">' + chips.map((c) => '<button class="chip' + (f.status === c[0] ? ' on' : '') + '" data-act="accf" data-v="' + c[0] + '">' + c[1] + '</button>').join('') + '<button class="chip' + (f.over ? ' on' : '') + '" data-act="accover">期限超過のみ</button></div>' +
     '<div class="row"><div class="field"><div class="lbl">店舗</div><select data-filter="store"><option value="">すべての店舗</option>' + ses.stores.map((s) => '<option value="' + s.code + '"' + (f.store === s.code ? ' selected' : '') + '>' + esc(s.code + ' ' + s.name) + '</option>').join('') + '</select></div><div class="field"><div class="lbl">発生月</div><select data-filter="month"><option value="">すべて</option>' + months.map((m) => '<option' + (f.month === m ? ' selected' : '') + '>' + m + '</option>').join('') + '</select></div><button class="btn sm" style="flex:0 0 auto;align-self:end" data-act="xlsxlist">一覧をExcelで保存</button></div>' +
     '<div class="split wide' + (sel ? ' has-sel' : '') + '"><div class="pane-list"><div class="tl"><table><thead><tr><th>状態</th><th>様式</th><th>店舗</th><th>日付</th><th>内容</th><th>承認</th></tr></thead><tbody>' +
@@ -604,6 +616,8 @@ document.addEventListener('click', async (e) => {
   if (a === 'login') return doLogin();
   if (a === 'reserve') { if (!S.rv || S.rvStore !== S.session.store.code) { S.rv = Reserve.blank(S.session.store, todayStr()); S.rvStore = S.session.store.code; } return go('reserve'); }
   if (a === 'rvback') return go('home');
+  if (a === 'rvtobill') { if (!rvOk()) return; const f = blankForm('bill'); fillBillFromRv(f.data); S.form = f; S.usageOpen = {}; toast('請求依頼票（④）に引き継ぎました。住所・レシートNo・写真を入力してください'); return go('form'); }
+  if (a === 'billfromrv') { fillBillFromRv(S.form.data); toast('ご予約内容確認票から読み込みました'); return render(); }
   if (a === 'rvset') { const k = t.dataset.k, v = t.dataset.v; if (k === 'feeMode') S.rv.feeMode = v; else S.rv[k] = S.rv[k] === v ? '' : v; const y0 = window.scrollY; render(); return window.scrollTo(0, y0); }
   if (a === 'rvpreview') { if (!rvOk()) return; const w = Math.min(window.innerWidth - 40, 720), z = w / 718; return modal('<div class="rvwrap" style="max-height:78vh"><div style="zoom:' + z.toFixed(3) + '">' + Reserve.html(S.rv) + '</div></div><button class="btn pri" data-act="ovclose">閉じる</button>'), $layer.querySelector('.box').style.maxWidth = (w + 40) + 'px'; }
   if (a === 'rvpdf') { if (!rvOk()) return; document.getElementById('printArea').innerHTML = Reserve.html(S.rv); setTimeout(() => { window.print(); }, 300); return; }
@@ -646,14 +660,14 @@ document.addEventListener('click', async (e) => {
 });
 document.addEventListener('input', (e) => {
   const d = e.target.dataset || {};
-  if (d.rv !== undefined && S.rv) { S.rv[d.rv] = e.target.value; if (d.rv === 'total') S.rv.totalEdited = e.target.value !== ''; return; }
+  if (d.rv !== undefined && S.rv) { S.rv[d.rv] = e.target.value; if (d.rv === 'total') S.rv.totalEdited = e.target.value !== ''; else rvLive(); return; }
   if (d.item !== undefined && S.form) { S.form.items[+d.item][d.key] = d.key === 'receiptAt' ? fromInput(e.target.value) : e.target.value; return; }
   if (d.path !== undefined && S.form) { let v = e.target.value; if (d.num) v = v === '' ? '' : Math.abs(Math.floor(Number(v)) || 0); setPath(S.form, d.path, v); liveOut(); return; }
   const b = d.bind; if (b && S.form) { S.form[b] = b === 'occurredAt' ? fromInput(e.target.value) : e.target.value; }
 });
 document.addEventListener('change', async (e) => {
   const el = e.target;
-  if (el.dataset.rv !== undefined && S.rv) { S.rv[el.dataset.rv] = el.value; if (['useDate', 'unit', 'headcount'].indexOf(el.dataset.rv) >= 0) { const y0 = window.scrollY; render(); window.scrollTo(0, y0); } return; }
+  if (el.dataset.rv !== undefined && S.rv) { S.rv[el.dataset.rv] = el.value; rvLive(); return; }
   if (el.dataset.filter === 'matrixMonth') { S.matrixMonth = el.value; return render(); }
   if (el.dataset.filter) { S.filter[el.dataset.filter] = el.value; S.sel = null; return render(); }
   if (el.dataset.bind === 'targetMonth') { if (S.form.form === 'usage') return switchUsageMonth(); syncCarry(); return render(); }
